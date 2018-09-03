@@ -747,6 +747,8 @@ function receivedPostback(event) {
 	switch (payload) {
         case 'JOB_APPLY':
             sendToDialogFlow(senderID,"hey");
+        case 'GET_STARTED':
+            sendToDialogFlow(senderID,"it is a test");
 		default:
 			//unindentified payload
 			sendTextMessage(senderID, "I'm not sure what you want. Can you be more specific?");
