@@ -27,7 +27,7 @@ curl -X POST -H "Content-Type: application/json" -d '{
         },
         {
           "type":"postback",
-          "title":"Start here",
+          "title":"GET STARTED",
           "payload":"GET_STARTED"
         }
       ]

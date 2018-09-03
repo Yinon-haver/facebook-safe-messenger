@@ -738,7 +738,7 @@ function greetUserText(userId) {
             if (user.first_name) {
                 console.log("FB user: %s %s, %s",
                     user.first_name, user.last_name, user.gender);
-                sendTextMessage(userId, "Welcome " + user.first_name + '!');
+                sendTextMessage(userId, "Welcome " + user.first_name + user.last_name+'!');
             } else {
                 console.log("Cannot get data for fb user with id",
                     userId);
