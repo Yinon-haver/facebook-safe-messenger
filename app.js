@@ -324,7 +324,7 @@ function handleDialogFlowResponse(sender, response) {
         handleMessages(messages, sender);
 	} else if (responseText == '' && !isDefined(action)) {
 		//dialogflow could not evaluate input.
-		sendTextMessage(sender, "I'm not sure what you want. Can you be more specific?");
+		sendTextMessage(sender, "I'm not sure what you want. Can you be more yinon?");
 	} else if (isDefined(responseText)) {
 		sendTextMessage(sender, responseText);
 	}
@@ -745,6 +745,8 @@ function receivedPostback(event) {
 	var payload = event.postback.payload;
 
 	switch (payload) {
+        case 'JOB_APPLY':
+            sendToDialogFlow(senderID,"hey");
 		default:
 			//unindentified payload
 			sendTextMessage(senderID, "I'm not sure what you want. Can you be more specific?");
