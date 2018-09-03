@@ -174,10 +174,11 @@ function receivedMessage(event) {
 		return;
 	}
 
-
+// here i was added translat messaging option
 	if (messageText) {
 		//send message to api.ai
-		sendToDialogFlow(senderID, messageText);
+       var translateMessage = sendToTranslateService(messageText);
+		sendToDialogFlow(senderID, translateMessage);
 	} else if (messageAttachments) {
 		handleMessageAttachments(messageAttachments, senderID);
 	}
@@ -738,7 +739,7 @@ function greetUserText(userId) {
             if (user.first_name) {
                 console.log("FB user: %s %s, %s",
                     user.first_name, user.last_name, user.gender);
-                sendTextMessage(userId, "Welcome " + user.first_name + user.last_name+'!');
+                sendTextMessage(userId, "Welcome " + user.first_name + " "+ user.last_name +'!');
             } else {
                 console.log("Cannot get data for fb user with id",
                     userId);
@@ -746,9 +747,13 @@ function greetUserText(userId) {
         } else {
             console.error(response.error);
         }
+
     });
 }
 
+function sendToTranslateService(message) {
+    request.post('http://localhost:8080/translate').form({destlan:'en',message: message})
+}
 
 
 
