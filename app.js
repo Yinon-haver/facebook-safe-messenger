@@ -5,6 +5,7 @@ const config = require('./config.sample');
 const express = require('express');
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
+const axios = require('axios');
 const request = require('request');
 const app = express();
 const uuid = require('uuid');
@@ -176,8 +177,8 @@ function receivedMessage(event) {
 // here i was added translat messaging option
 	if (messageText) {
 		//send message to api.ai
-       var translateMessage = sendToTranslateService(messageText);
-		sendToDialogFlow(senderID, translateMessage);
+        sendToTranslateService(messageText ,senderID);
+
 	} else if (messageAttachments) {
 		handleMessageAttachments(messageAttachments, senderID);
 	}
@@ -750,12 +751,29 @@ function greetUserText(userId) {
     });
 }
 
-function sendToTranslateService(message) {
+function sendToTranslateService(message ,senderID) {
+    request({
+        uri: 'https://translate-api-java.herokuapp.com/translate',
+        method:'POST',
+        headers:{'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            "text":message,
+            "lang":"en"
+        })
 
-    request.post('http://localhost:3030/translate').form({destlan:'en',message: message})
-    console.log("send !!!!!")
+    }, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var body = JSON.parse(body);
+            var messegeTranslated = body[0].translations[0].text
+            console.log(messegeTranslated);
+            sendToDialogFlow(senderID, messegeTranslated);
+        } else {
+            console.error(response.error);
+        }
+
+    });
+
 }
-
 
 
 
