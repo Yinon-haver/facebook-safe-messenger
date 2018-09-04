@@ -82,7 +82,7 @@ app.get('/', function (req, res) {
 })
 
 // for Facebook verification
-app.get('/Hola/', function (req, res) {
+app.get('/webhook/', function (req, res) {
 	console.log("request");
 	if (req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === config.FB_VERIFY_TOKEN) {
 		res.status(200).send(req.query['hub.challenge']);
@@ -177,7 +177,7 @@ function receivedMessage(event) {
 // here i was added translat messaging option
 	if (messageText) {
 		//send message to api.ai
-        sendToTranslateService(messageText ,senderID);
+        sendToTranslateService(messageText ,senderID,"en");
 
 	} else if (messageAttachments) {
 		handleMessageAttachments(messageAttachments, senderID);
@@ -751,14 +751,14 @@ function greetUserText(userId) {
     });
 }
 
-function sendToTranslateService(message ,senderID) {
+function sendToTranslateService(message ,senderID ,destLang) {
     request({
         uri: 'https://translate-api-java.herokuapp.com/translate',
         method:'POST',
         headers:{'Content-Type': 'application/json'},
         body: JSON.stringify({
             "text":message,
-            "lang":"en"
+            "lang":destLang
         })
 
     }, function (error, response, body) {
