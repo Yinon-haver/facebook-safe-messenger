@@ -753,7 +753,7 @@ function greetUserText(userId) {
 
 function sendToTranslateService(message) {
     console.log("go to translate api")
-    request.post('http://localhost:8080/translate').form({destlan:'en',message: message})
+    request.post('http://localhost:3030/translate').form({destlan:'en',message: message})
     console.log("send !!!!!")
 }
 
