@@ -92,6 +92,11 @@ app.get('/webhook/', function (req, res) {
 	}
 })
 
+
+var currentLanguage ;
+var destinationLanguage ;
+
+
 /*
  * All callbacks for Messenger are POST-ed. They will be sent to the same
  * webhook. Be sure to subscribe your app to your page to receive callbacks
@@ -105,7 +110,9 @@ app.post('/webhook/', function (req, res) {
 
 
 
-	// Make sure this is a page subscription
+
+
+    // Make sure this is a page subscription
 	if (data.object == 'page') {
 		// Iterate over each entry
 		// There may be multiple if batched
@@ -177,7 +184,7 @@ function receivedMessage(event) {
 // here i was added translat messaging option
 	if (messageText) {
 		//send message to api.ai
-        sendToTranslateServiceAndThenToDialogFlow(messageText ,senderID,"en");
+        sendToTranslateServiceAndThenToDialogFlow(messageText ,recipientID,"en");
 
 	} else if (messageAttachments) {
 		handleMessageAttachments(messageAttachments, senderID);
@@ -213,11 +220,10 @@ function handleDialogFlowAction(sender, action, messages, contexts, parameters) 
 
 function handleMessage(message, sender) {
     switch (message.message) {
-        case "text": //text
+        case "text":
             message.text.text.forEach((text) => {
                 if (text !== '') {
-                	sentToTranslateServiceAndThenTosendTextMesseg(text,sender,"es")
-
+                	sentToTranslateServiceAndThenTosendTextMesseg(text,sender,destinationLanguage)
                 }
             });
             break;
@@ -326,8 +332,7 @@ function handleDialogFlowResponse(sender, response) {
     } else if (isDefined(messages)) {
         handleMessages(messages, sender);
 	} else if (responseText == '' && !isDefined(action)) {
-		//dialogflow could not evaluate input.
-		sendTextMessage(sender, "I'm not sure what you want. Can you be more yinon?");
+		sendTextMessage(sender, "I'm not sure what you want. Can you be more specific?");
 	} else if (isDefined(responseText)) {
         sentToTranslateServiceAndThenTosendTextMesseg(responseText,sender,"es")
 
@@ -669,34 +674,6 @@ function sendAccountLinking(recipientId) {
 }
 
 
-function greetUserText(userId) {
-	//first read user firstname
-	request({
-		uri: 'https://graph.facebook.com/v2.7/' + userId,
-		qs: {
-			access_token: config.FB_PAGE_TOKEN
-		}
-
-	}, function (error, response, body) {
-		if (!error && response.statusCode == 200) {
-
-			var user = JSON.parse(body);
-
-			if (user.first_name) {
-				console.log("FB user: %s %s, %s",
-					user.first_name, user.last_name, user.gender);
-
-				sendTextMessage(userId, "Welcome " + user.first_name + '!');
-			} else {
-				console.log("Cannot get data for fb user with id",
-					userId);
-			}
-		} else {
-			console.error(response.error);
-		}
-
-	});
-}
 
 /*
  * Call the Send API. The message data goes in the body. If successful, we'll 
@@ -767,6 +744,7 @@ function sendToTranslateServiceAndThenToDialogFlow(message ,senderID ,destLang) 
     }, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var body = JSON.parse(body);
+			destinationLanguage =body[0].detectedLanguage.language
             var messegeTranslated = body[0].translations[0].text
             console.log(messegeTranslated);
             sendToDialogFlow(senderID, messegeTranslated);
@@ -777,6 +755,12 @@ function sendToTranslateServiceAndThenToDialogFlow(message ,senderID ,destLang) 
     });
 
 }
+
+
+
+
+
+
 
 function sentToTranslateServiceAndThenTosendTextMesseg(message ,sender ,destLang) {
     request({
