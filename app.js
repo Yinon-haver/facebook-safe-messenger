@@ -184,7 +184,7 @@ function receivedMessage(event) {
 // here i was added translat messaging option
 	if (messageText) {
 		//send message to api.ai
-        sendToTranslateServiceAndThenToDialogFlow(messageText ,recipientID,"en");
+        sendToTranslateServiceAndThenToDialogFlow(messageText ,senderID,"en");
 
 	} else if (messageAttachments) {
 		handleMessageAttachments(messageAttachments, senderID);
