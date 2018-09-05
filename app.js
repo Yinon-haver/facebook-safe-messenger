@@ -177,7 +177,7 @@ function receivedMessage(event) {
 // here i was added translat messaging option
 	if (messageText) {
 		//send message to api.ai
-        sendToTranslateService(messageText ,senderID,"en");
+        sendToTranslateServiceAndThenToDialogFlow(messageText ,senderID,"en");
 
 	} else if (messageAttachments) {
 		handleMessageAttachments(messageAttachments, senderID);
@@ -279,6 +279,7 @@ function handleCardMessages(messages, sender) {
 
 
 function handleMessages(messages, sender) {
+
     let timeoutInterval = 1100;
     let previousType ;
     let cardTypes = [];
@@ -327,7 +328,8 @@ function handleDialogFlowResponse(sender, response) {
 		//dialogflow could not evaluate input.
 		sendTextMessage(sender, "I'm not sure what you want. Can you be more yinon?");
 	} else if (isDefined(responseText)) {
-		sendTextMessage(sender, responseText);
+        sentToTranslateServiceAndThenTosendTextMesseg(responseText,sender,"es")
+
 	}
 }
 
@@ -751,7 +753,7 @@ function greetUserText(userId) {
     });
 }
 
-function sendToTranslateService(message ,senderID ,destLang) {
+function sendToTranslateServiceAndThenToDialogFlow(message ,senderID ,destLang) {
     request({
         uri: 'https://translate-api-java.herokuapp.com/translate',
         method:'POST',
@@ -775,6 +777,28 @@ function sendToTranslateService(message ,senderID ,destLang) {
 
 }
 
+function sentToTranslateServiceAndThenTosendTextMesseg(message ,sender ,destLang) {
+    request({
+        uri: 'https://translate-api-java.herokuapp.com/translate',
+        method:'POST',
+        headers:{'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            "text":message,
+            "lang":destLang
+        })
+
+    }, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var body = JSON.parse(body);
+            var messegeTranslated = body[0].translations[0].text
+            console.log(messegeTranslated);
+            sendTextMessage(sender, messegeTranslated);
+        } else {
+            console.error(response.error);
+        }
+
+    });
+}
 
 
 /*
