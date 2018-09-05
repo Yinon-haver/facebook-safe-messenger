@@ -216,7 +216,8 @@ function handleMessage(message, sender) {
         case "text": //text
             message.text.text.forEach((text) => {
                 if (text !== '') {
-                    sendTextMessage(sender, text);
+                	sentToTranslateServiceAndThenTosendTextMesseg(text,sender,"es")
+
                 }
             });
             break;
