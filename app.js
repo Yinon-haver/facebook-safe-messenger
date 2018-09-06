@@ -719,7 +719,8 @@ function greetUserText(userId) {
             if (user.first_name) {
                 console.log("FB user: %s %s, %s",
                     user.first_name, user.last_name, user.gender);
-                sendTextMessage(userId, "Welcome " + user.first_name + " "+ user.last_name +'!');
+                var messeg =  "Welcome " + user.first_name + " "+ user.last_name +'!'
+                sentToTranslateServiceAndThenTosendTextMesseg(messeg,userId,destinationLanguage);
             } else {
                 console.log("Cannot get data for fb user with id",
                     userId);
@@ -740,7 +741,6 @@ function sendToTranslateServiceAndThenToDialogFlow(message ,senderID ,destLang) 
             "text":message,
             "lang":destLang
         })
-
     }, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var body = JSON.parse(body);
@@ -751,15 +751,9 @@ function sendToTranslateServiceAndThenToDialogFlow(message ,senderID ,destLang) 
         } else {
             console.error(response.error);
         }
-
     });
 
 }
-
-
-
-
-
 
 
 function sentToTranslateServiceAndThenTosendTextMesseg(message ,sender ,destLang) {
@@ -771,7 +765,6 @@ function sentToTranslateServiceAndThenTosendTextMesseg(message ,sender ,destLang
             "text":message,
             "lang":destLang
         })
-
     }, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var body = JSON.parse(body);
@@ -781,7 +774,6 @@ function sentToTranslateServiceAndThenTosendTextMesseg(message ,sender ,destLang
         } else {
             console.error(response.error);
         }
-
     });
 }
 
