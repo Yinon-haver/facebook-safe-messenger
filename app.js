@@ -95,6 +95,8 @@ app.get('/webhook/', function (req, res) {
 
 var currentLanguage ;
 var destinationLanguage ;
+var senderLanguage;
+var recipientLanguage;
 var batelId ="1938521832895282";
 var yinonId ="1827638217354787";
 
@@ -192,8 +194,8 @@ function receivedMessage(event) {
 	if (messageText) {
 		//send message to api.ai
        // sendToTranslateServiceAndThenToDialogFlow(messageText ,senderID,"en");
-		//sendTextMessage(senderID,messageText);
-        sentToTranslateServiceAndThenTosendTextMesseg(messageText,senderID,"en");
+		sendTextMessage(senderID,messageText);
+        // sentToTranslateServiceAndThenTosendTextMesseg(messageText,senderID,"en");
 
 	} else if (messageAttachments) {
 		handleMessageAttachments(messageAttachments, senderID);
@@ -778,6 +780,7 @@ function sentToTranslateServiceAndThenTosendTextMesseg(message ,sender ,destLang
     }, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var body = JSON.parse(body);
+            destinationLanguage = body[0].detectedLanguage.language
             var messegeTranslated = body[0].translations[0].text
             console.log(messegeTranslated);
             sendTextMessage(sender, messegeTranslated);
