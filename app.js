@@ -192,8 +192,8 @@ function receivedMessage(event) {
 	if (messageText) {
 		//send message to api.ai
        // sendToTranslateServiceAndThenToDialogFlow(messageText ,senderID,"en");
-		sendTextMessage(senderID,messageText);
-        // sentToTranslateServiceAndThenTosendTextMesseg(messageText,senderID,"en");
+		//sendTextMessage(senderID,messageText);
+        sentToTranslateServiceAndThenTosendTextMesseg(messageText,senderID,"en");
 
 	} else if (messageAttachments) {
 		handleMessageAttachments(messageAttachments, senderID);
