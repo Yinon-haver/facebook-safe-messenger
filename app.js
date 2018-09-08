@@ -95,6 +95,8 @@ app.get('/webhook/', function (req, res) {
 
 var currentLanguage ;
 var destinationLanguage ;
+var batelId ="1938521832895282";
+var yinonId ="1827638217354787";
 
 
 /*
@@ -153,6 +155,11 @@ app.post('/webhook/', function (req, res) {
 function receivedMessage(event) {
 
 	var senderID = event.sender.id;
+	if(senderID==batelId){
+		senderID=yinonId;
+	}else {
+		senderID=batelId;
+	}
 	var recipientID = event.recipient.id;
 	var timeOfMessage = event.timestamp;
 	var message = event.message;
@@ -184,7 +191,9 @@ function receivedMessage(event) {
 // here i was added translat messaging option
 	if (messageText) {
 		//send message to api.ai
-        sendToTranslateServiceAndThenToDialogFlow(messageText ,senderID,"en");
+       // sendToTranslateServiceAndThenToDialogFlow(messageText ,senderID,"en");
+		sendTextMessage(senderID,messageText);
+        // sentToTranslateServiceAndThenTosendTextMesseg(messageText,senderID,"en");
 
 	} else if (messageAttachments) {
 		handleMessageAttachments(messageAttachments, senderID);
@@ -681,6 +690,7 @@ function sendAccountLinking(recipientId) {
  *
  */
 function callSendAPI(messageData) {
+	console.log(messageData.recipient.id)
 	request({
 		uri: 'https://graph.facebook.com/v2.6/me/messages',
 		qs: {
@@ -801,7 +811,7 @@ function receivedPostback(event) {
             greetUserText(senderID);
 		default:
 			//unindentified payload
-			sendTextMessage(senderID, "I'm not sure what you want. Can you be more yinon?");
+			sendTextMessage(senderID, "I'm not sure what you want. Can you be more specific?");
 			break;
 
 	}
