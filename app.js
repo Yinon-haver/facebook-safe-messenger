@@ -61,6 +61,8 @@ app.use(bodyParser.json());
 
 
 
+
+
 const credentials = {
     client_email: config.GOOGLE_CLIENT_EMAIL,
     private_key: config.GOOGLE_PRIVATE_KEY,
@@ -92,13 +94,22 @@ app.get('/webhook/', function (req, res) {
 	}
 })
 
+var langMap = new Map();
 
-var currentLanguage ;
-var destinationLanguage ;
+
+
+var rautingMap = new Map();
+
+rautingMap.set(batelId,yinonId);
+rautingMap.set(yinonId,batelId);
+
+var isFirstMessegeToDest= true;
 var senderLanguage;
 var recipientLanguage;
 var batelId ="1938521832895282";
 var yinonId ="1827638217354787";
+
+var pageId="289965705132190";
 
 
 /*
@@ -111,11 +122,6 @@ var yinonId ="1827638217354787";
 app.post('/webhook/', function (req, res) {
 	var data = req.body;
 	console.log(JSON.stringify(data));
-
-
-
-
-
     // Make sure this is a page subscription
 	if (data.object == 'page') {
 		// Iterate over each entry
@@ -157,11 +163,6 @@ app.post('/webhook/', function (req, res) {
 function receivedMessage(event) {
 
 	var senderID = event.sender.id;
-	if(senderID==batelId){
-		senderID=yinonId;
-	}else {
-		senderID=batelId;
-	}
 	var recipientID = event.recipient.id;
 	var timeOfMessage = event.timestamp;
 	var message = event.message;
@@ -179,6 +180,19 @@ function receivedMessage(event) {
 
 	// You may get a text or attachment but not both
 	var messageText = message.text;
+
+	// if(langMap.get(senderID) == null){
+    //     checkLanguage(messageText,senderID);
+	// }
+    var recipient
+    if(senderID==batelId){
+        senderID=yinonId;
+        recipient=batelId
+    }else {
+        senderID=batelId;
+        recipient=yinonId;
+    }
+
 	var messageAttachments = message.attachments;
 	var quickReply = message.quick_reply;
 
@@ -190,12 +204,21 @@ function receivedMessage(event) {
 		return;
 	}
 
+
+
+
 // here i was added translat messaging option
 	if (messageText) {
 		//send message to api.ai
        // sendToTranslateServiceAndThenToDialogFlow(messageText ,senderID,"en");
-		sendTextMessage(senderID,messageText);
-        // sentToTranslateServiceAndThenTosendTextMesseg(messageText,senderID,"en");
+		//sendTextMessage(senderID,messageText);
+		if(langMap.get(senderID)== null){
+            sentToTranslateServiceAndThenTosendTextMesseg(messageText,senderID ,"en",recipient);
+
+        }else {
+            sentToTranslateServiceAndThenTosendTextMesseg(messageText,senderID ,langMap.get(senderID),recipient);
+		}
+
 
 	} else if (messageAttachments) {
 		handleMessageAttachments(messageAttachments, senderID);
@@ -234,7 +257,7 @@ function handleMessage(message, sender) {
         case "text":
             message.text.text.forEach((text) => {
                 if (text !== '') {
-                	sentToTranslateServiceAndThenTosendTextMesseg(text,sender,destinationLanguage)
+                	sentToTranslateServiceAndThenTosendTextMesseg(text,sender,senderLanguage)
                 }
             });
             break;
@@ -732,7 +755,7 @@ function greetUserText(userId) {
                 console.log("FB user: %s %s, %s",
                     user.first_name, user.last_name, user.gender);
                 var messeg =  "Welcome " + user.first_name + " "+ user.last_name +'!'
-                sentToTranslateServiceAndThenTosendTextMesseg(messeg,userId,destinationLanguage);
+                sentToTranslateServiceAndThenTosendTextMesseg(messeg,userId,senderLanguage);
             } else {
                 console.log("Cannot get data for fb user with id",
                     userId);
@@ -756,7 +779,7 @@ function sendToTranslateServiceAndThenToDialogFlow(message ,senderID ,destLang) 
     }, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var body = JSON.parse(body);
-			destinationLanguage =body[0].detectedLanguage.language
+            senderLanguage =body[0].detectedLanguage.language
             var messegeTranslated = body[0].translations[0].text
             console.log(messegeTranslated);
             sendToDialogFlow(senderID, messegeTranslated);
@@ -767,8 +790,34 @@ function sendToTranslateServiceAndThenToDialogFlow(message ,senderID ,destLang) 
 
 }
 
+function checkLanguage(message ,senderId) {
+    request({
+        uri: 'https://translate-api-java.herokuapp.com/identify',
+        method:'POST',
+        headers:{'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            "text":message,
+        })
+    }, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var body = JSON.parse(body);
+            var language = body[0].language
+			langMap.set(senderId,language);
+            console.log(senderId +"language is :" + language);
+        } else {
+            console.error(response.error);
+        }
+    });
 
-function sentToTranslateServiceAndThenTosendTextMesseg(message ,sender ,destLang) {
+}
+
+
+function firstMessegesInsession(message,sender) {
+
+}
+
+
+function sentToTranslateServiceAndThenTosendTextMesseg(message ,sender ,destLang ,recipient) {
     request({
         uri: 'https://translate-api-java.herokuapp.com/translate',
         method:'POST',
@@ -780,10 +829,21 @@ function sentToTranslateServiceAndThenTosendTextMesseg(message ,sender ,destLang
     }, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var body = JSON.parse(body);
-            destinationLanguage = body[0].detectedLanguage.language
+
+          //need to update the map.
+			langMap.set(recipient,body[0].detectedLanguage.language);
             var messegeTranslated = body[0].translations[0].text
             console.log(messegeTranslated);
-            sendTextMessage(sender, messegeTranslated);
+            //need to had function to check if is the firs message that we send to the recipient
+            //
+
+			if (langMap.get(sender)== null){
+                sendTextMessage(sender, messegeTranslated + " // you can answer in any lang you want and we will support that//");
+			}else {
+                sendTextMessage(sender, messegeTranslated);
+
+            }
+
         } else {
             console.error(response.error);
         }
