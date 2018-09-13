@@ -861,7 +861,7 @@ function sentToTranslateServiceAndThenTosendTextMesseg(message ,sender ,destLang
 
 function sendToNLP(message,senderId) {
 	request({
-    uri: 'https://1adf51b3.ngrok.io',
+    uri: 'https://11e8c19d.ngrok.io',
     method:'POST',
     headers:{'Content-Type': 'application/json'},
     body: JSON.stringify({
