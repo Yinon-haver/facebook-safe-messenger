@@ -48,6 +48,12 @@ app.use(bodyParser.json({
 //serve static files in the public directory
 app.use(express.static('public'));
 
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
 // Process application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({
 	extended: false
@@ -55,11 +61,6 @@ app.use(bodyParser.urlencoded({
 
 // Process application/json
 app.use(bodyParser.json());
-
-
-
-
-
 
 
 
@@ -80,7 +81,7 @@ const sessionIds = new Map();
 
 // Index route
 app.get('/', function (req, res) {
-	res.send('Hello world, I am a chat bot')
+	res.send('Hello world')
 })
 
 // for Facebook verification
@@ -94,20 +95,17 @@ app.get('/webhook/', function (req, res) {
 	}
 })
 
+var numberOfMessagesPerConver=0;
+var totalRateUser1 =0 ;
+var totalRateUser2 =0 ;
+var ranckingMap = new Map();
 var langMap = new Map();
-
-
-
 var rautingMap = new Map();
-
-rautingMap.set(batelId,yinonId);
-rautingMap.set(yinonId,batelId);
-
-var isFirstMessegeToDest= true;
 var senderLanguage;
-var recipientLanguage;
 var batelId ="1938521832895282";
 var yinonId ="1827638217354787";
+
+var adielId="2283465511667951";
 
 var pageId="289965705132190";
 
@@ -184,7 +182,9 @@ function receivedMessage(event) {
 	// if(langMap.get(senderID) == null){
     //     checkLanguage(messageText,senderID);
 	// }
-    var recipient
+
+	//rout the messege to yinon -> batel and the opposite
+    var recipient;
     if(senderID==batelId){
         senderID=yinonId;
         recipient=batelId
@@ -205,19 +205,22 @@ function receivedMessage(event) {
 	}
 
 
+	// three option :
+	//1)first message so we send the message to the recipient in english .
+	//2)the lang are different so we translate
+	//3)the lang are equal so we just routing the message
 
-
-// here i was added translat messaging option
 	if (messageText) {
-		//send message to api.ai
        // sendToTranslateServiceAndThenToDialogFlow(messageText ,senderID,"en");
 		//sendTextMessage(senderID,messageText);
-		if(langMap.get(senderID)== null){
-            sentToTranslateServiceAndThenTosendTextMesseg(messageText,senderID ,"en",recipient);
-
-        }else {
-            sentToTranslateServiceAndThenTosendTextMesseg(messageText,senderID ,langMap.get(senderID),recipient);
-		}
+		sendToNLP(messageText,senderID);
+		// if((langMap.get(senderID)== null) && (langMap.get(recipient) == null)){
+        //     sentToTranslateServiceAndThenTosendTextMesseg(messageText,senderID ,"en",recipient);
+        // }else if ( !(langMap.get(senderID)==langMap.get(recipient)) ){
+        //     sentToTranslateServiceAndThenTosendTextMesseg(messageText,senderID ,langMap.get(senderID),recipient);
+		// }else {
+		// 	sendTextMessage(senderID,messageText);
+		// }
 
 
 	} else if (messageAttachments) {
@@ -466,6 +469,7 @@ function sendGifMessage(recipientId) {
 
 	callSendAPI(messageData);
 }
+
 
 /*
  * Send audio using the Send API.
@@ -848,6 +852,51 @@ function sentToTranslateServiceAndThenTosendTextMesseg(message ,sender ,destLang
             console.error(response.error);
         }
     });
+}
+
+function sendToNLP(message,senderId) {
+	request({
+    uri: 'https://1adf51b3.ngrok.io',
+    method:'POST',
+    headers:{'Content-Type': 'application/json'},
+    body: JSON.stringify({
+        "value":message,
+		"photoUri":""
+    })
+}, function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+        var body = JSON.parse(body);
+        var ans= body.respons;
+        var rate = body.rate;
+
+        if (ans){
+            if (senderId == yinonId){
+                totalRateUser1+=rate
+            }else {
+                totalRateUser2+=rate;
+            }
+        }
+
+        if (totalRateUser2 > 0.5|| totalRateUser1 > 0.5){
+           // sendGifMessage(senderId)
+            let buttons = [
+                {
+                    type:"web_url",
+                    url:"https://www.myapple.com/track_order",
+                    title:"'Warning"
+                },
+            ];
+           // sendGifMessage(senderId);
+        	sendButtonMessage(senderId,"This user is suspicious, be careful",buttons);
+		}else {
+        	sendTextMessage(senderId,message);
+		}
+
+    } else {
+        console.error(response.error);
+    }
+});
+
 }
 
 
