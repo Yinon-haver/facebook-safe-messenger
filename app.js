@@ -86,7 +86,7 @@ app.get('/getRateData',function (req,res) {
 
 // Index route
 app.get('/', function (req, res) {
-	res.send('Hello world')
+	res.send('Hello world!!!!')
 })
 
 // for Facebook verification
