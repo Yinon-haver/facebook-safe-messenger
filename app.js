@@ -882,7 +882,7 @@ function sendToNLP(message,senderId) {
             }
         }
 
-        if (totalRateUser2 > 10|| totalRateUser1 > 10){
+        if (totalRateUser2 > 7|| totalRateUser1 > 7){
            // sendGifMessage(senderId)
             let buttons = [
                 {
