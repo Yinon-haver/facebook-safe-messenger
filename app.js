@@ -80,7 +80,7 @@ const sessionClient = new dialogflow.SessionsClient(
 const sessionIds = new Map();
 
 app.get('/getRateData',function (req,res) {
-	res.json({ userid1: yinonId, userid2:batelId, user1ratedata:totalRateUser1,user2ratedata:totalRateUser2 })
+	res.json({ userid1: "yinon", userid2:"batel", user1ratedata:totalRateUser1,user2ratedata:totalRateUser2 })
 
 })
 
