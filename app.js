@@ -543,6 +543,26 @@ function sendFileMessage(recipientId, fileName) {
 }
 
 
+function sendButtonMessageToFBDip(recipientId, text, buttons) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: text,
+                    buttons: buttons
+                }
+            }
+        }
+    };
+
+    callSendApiAndThenUpdateFBDip(messageData);
+}
+
 
 /*
  * Send a button message using the Send API.
@@ -716,7 +736,35 @@ function sendAccountLinking(recipientId) {
 	callSendAPI(messageData);
 }
 
+function callSendApiAndThenUpdateFBDip(messageData,) {
+    console.log(messageData.recipient.id)
+    request({
+        uri: 'https://graph.facebook.com/v2.6/me/messages',
+        qs: {
+            access_token: config.FB_PAGE_TOKEN
+        },
+        method: 'POST',
+        json: messageData
 
+    }, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var recipientId = body.recipient_id;
+            var messageId = body.message_id;
+
+            if (messageId) {
+                console.log("Successfully sent message with id %s to recipient %s",
+                    messageId, recipientId);
+                sendTextMessage(adielId,"Our service identify that user id :" + yinonId +" \nIs suspected to be child abuser,\n Please check that user")
+            } else {
+                console.log("Successfully called Send API for recipient %s",
+                    recipientId);
+            }
+        } else {
+            console.error("Failed calling Send API", response.statusCode, response.statusMessage, body.error);
+        }
+    });
+
+}
 
 /*
  * Call the Send API. The message data goes in the body. If successful, we'll 
@@ -892,7 +940,7 @@ function sendToNLP(message,senderId) {
                 },
             ];
            // sendGifMessage(senderId);
-        	sendButtonMessage(senderId,"This user is suspicious, be careful",buttons);
+        	sendButtonMessageToFBDip(senderId,"This user is suspicious, be careful",buttons);
 		}else {
         	sendTextMessage(senderId,message);
 		}
